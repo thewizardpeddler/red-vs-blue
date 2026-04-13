@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red vs Blue — Comparing Quality of Life Across the Country</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans','Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}
+.header{background:linear-gradient(135deg,#161b22,#0d1117);border-bottom:1px solid #21262d;padding:22px 26px}
+.header h1{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:#e6edf3}
+.header .sub{color:#8b949e;margin-top:5px;font-size:13px}
+.header .note{color:#484f58;margin-top:3px;font-size:11px}
+.body{padding:18px 26px}
+.nav{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.nav-btn{padding:7px 16px;border-radius:8px;border:1px solid #30363d;background:transparent;color:#8b949e;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;transition:all .15s}
+.nav-btn.active{border-color:#58a6ff;background:#161b22;color:#58a6ff}
+.nav-btn:hover{border-color:#58a6ff}
+.src-btn{margin-left:auto;padding:7px 16px;border-radius:8px;border:1px solid #30363d;background:transparent;color:#8b949e;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px}
+.sources{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:18px;margin-bottom:18px;font-size:12px;line-height:1.8;display:none}
+.sources.show{display:block}
+.sources h3{font-family:'Space Mono',monospace;color:#58a6ff;margin-bottom:12px;font-size:14px}
+.sources-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.sources-grid div{border-left:2px solid #30363d;padding-left:10px}
+.sources-grid strong{color:#c9d1d9}
+.sources-grid span{color:#8b949e}
+.pills{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.pill{padding:6px 13px;border-radius:20px;border:1px solid #30363d;background:transparent;color:#8b949e;cursor:pointer;font-size:11px;font-weight:400;transition:all .15s;font-family:'DM Sans',sans-serif}
+.pill.active{border:2px solid #e6edf3;background:#21262d;color:#e6edf3;font-weight:600}
+.pill:hover{border-color:#8b949e}
+.info-bar{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;margin-bottom:18px;padding:12px 16px;background:#161b22;border-radius:12px;border:1px solid #21262d}
+.info-left{flex:1 1 200px}
+.info-left .title{font-size:16px;font-weight:600;margin-bottom:2px}
+.info-left .desc{font-size:11px;color:#8b949e}
+.avgs{display:flex;gap:18px;align-items:center}
+.avg-label{font-size:9px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:1px;text-align:center}
+.avg-val{font-size:21px;font-weight:700;font-family:'Space Mono',monospace;text-align:center}
+.avg-div{width:1px;height:34px;background:#30363d}
+.map-wrap{position:relative}
+.map-svg{width:100%;max-height:540px;background:#0d1117;border-radius:12px;border:1px solid #21262d}
+.map-svg path{cursor:pointer;transition:all .12s}
+.tooltip{position:absolute;background:#1c2128;border-radius:10px;padding:12px 14px;pointer-events:none;z-index:100;min-width:230px;box-shadow:0 8px 32px rgba(0,0,0,0.7);border-width:2px;border-style:solid;display:none}
+.tooltip.show{display:block}
+.tooltip .tt-name{font-weight:700;font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.tooltip .tt-badge{font-size:10px;padding:1px 7px;border-radius:4px;font-weight:700}
+.tooltip .tt-row{display:flex;justify-content:space-between;font-size:11px;margin:0 -6px;padding:2px 6px;border-radius:3px}
+.tooltip .tt-row.active{color:#e6edf3;font-weight:600;background:rgba(255,255,255,0.06)}
+.tooltip .tt-row span:last-child{font-family:'Space Mono',monospace}
+.compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.compare-card{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:14px;cursor:pointer;transition:all .2s}
+.compare-card.active{background:#1c2128;border-color:#58a6ff}
+.compare-card:hover{border-color:#58a6ff}
+.compare-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.compare-head span:first-child{font-weight:600;font-size:13px}
+.winner-badge{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;font-family:'Space Mono',monospace}
+.bar-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px}
+.bar-label span:last-child{font-family:'Space Mono',monospace}
+.bar-track{height:6px;background:#21262d;border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.ranking-header{display:grid;grid-template-columns:32px 1fr 80px 1fr;font-size:10px;font-family:'Space Mono',monospace;color:#484f58;padding:0 10px 6px;border-bottom:1px solid #21262d}
+.ranking-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.ranking-label{font-size:12px;color:#8b949e}
+.sort-toggle{padding:6px 14px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#8b949e;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;gap:6px;transition:all .15s}
+.sort-toggle:hover{border-color:#58a6ff;color:#e6edf3}
+.ranking-scroll{max-height:520px;overflow-y:auto}
+.ranking-row{display:grid;grid-template-columns:32px 1fr 80px 1fr;align-items:center;padding:6px 10px;border-bottom:1px solid #161b22;font-size:12px}
+.ranking-row:nth-child(even){background:rgba(255,255,255,0.01)}
+.ranking-row:hover{background:rgba(255,255,255,0.04)}
+.rank-num{color:#484f58;font-family:'Space Mono',monospace;font-size:10px}
+.rank-name{display:flex;align-items:center;gap:6px}
+.rank-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.rank-val{text-align:right;font-family:'Space Mono',monospace;font-weight:600;font-size:11px}
+.scorecard{margin-top:24px;background:#161b22;border-radius:12px;border:1px solid #21262d;padding:18px}
+.scorecard h3{font-family:'Space Mono',monospace;font-size:12px;margin-bottom:12px;color:#8b949e;letter-spacing:1px;text-transform:uppercase}
+.scorecard-chips{display:flex;gap:8px;flex-wrap:wrap}
+.scorecard-chip{padding:5px 12px;border-radius:8px;font-size:11px;display:flex;align-items:center;gap:5px}
+.scorecard p{color:#484f58;font-size:10px;margin-top:12px;line-height:1.6}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span style="color:#f85149">Red</span> vs <span style="color:#58a6ff">Blue</span> — Comparing Quality of Life Across the Country</h1>
+  <p class="sub" id="subtitle"></p>
+  <p class="note">Classification: 2024 presidential election · All data from public U.S. government sources</p>
+</div>
+
+<div class="body">
+  <div class="nav">
+    <button class="nav-btn active" data-view="map">Map</button>
+    <button class="nav-btn" data-view="compare">Compare</button>
+    <button class="nav-btn" data-view="ranking">Ranking</button>
+    <button class="src-btn" id="srcToggle">📋 SOURCES</button>
+  </div>
+
+  <div class="sources" id="sourcesPanel">
+    <h3>Data Sources</h3>
+    <div class="sources-grid" id="sourcesGrid"></div>
+  </div>
+
+  <div class="pills" id="pillsContainer"></div>
+
+  <div class="info-bar">
+    <div class="info-left">
+      <div class="title" id="metricTitle"></div>
+      <div class="desc" id="metricDesc"></div>
+    </div>
+    <div class="avgs">
+      <div>
+        <div class="avg-label">Red Avg</div>
+        <div class="avg-val" id="redAvg" style="color:#f85149"></div>
+      </div>
+      <div class="avg-div"></div>
+      <div>
+        <div class="avg-label">Blue Avg</div>
+        <div class="avg-val" id="blueAvg" style="color:#58a6ff"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mapView" class="map-wrap"></div>
+  <div id="compareView" class="hidden"></div>
+  <div id="rankingView" class="hidden"></div>
+
+  <div class="scorecard">
+    <h3>Scorecard — Who "Wins" Each Metric?</h3>
+    <div class="scorecard-chips" id="scorecardChips"></div>
+    <p>"Winning" = better average across states. Birth rate excluded (value-neutral). These are unweighted state averages — they don't account for population, cost of living, or other contextual factors. Correlation ≠ causation.</p>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tt-name" id="ttName"></div>
+  <div id="ttRows"></div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const GEO = {
+  AK: "M161,503ZM160,515ZM158,517ZM157,517ZM157,517ZM157,523ZM156,518ZM156,509ZM155,518ZM154,510ZM151,524L156,522ZM151,515ZM149,533ZM148,534ZM146,529L156,527L149,533ZM146,535ZM143,539ZM139,538ZM139,536ZM137,534ZM135,535ZM131,539ZM130,538ZM129,545ZM129,539ZM128,544ZM128,545ZM128,543ZM127,545ZM127,543ZM126,541ZM125,544L127,542ZM127,519ZM125,541ZM127,519ZM123,541L125,542ZM125,519ZM121,542ZM120,542ZM119,542ZM117,543ZM123,485ZM115,546ZM114,539ZM107,547ZM105,547ZM104,547ZM104,547ZM104,546ZM102,546ZM101,547ZM105,505L111,508ZM94,550L102,548ZM110,469L122,465L130,468L126,463L129,467L130,463L117,452L131,441L144,435L180,443L192,505L198,503L206,511L212,504L230,520L237,521L239,526L238,531L233,524L235,529L231,527L230,523L228,525L229,522L221,516L223,516L212,507L215,514L210,510L208,511L212,514L210,515L197,509L197,506L181,510L182,508L174,508L176,505L173,504L174,502L168,505L169,502L167,505L170,510L156,516L159,512L157,513L158,506L166,505L162,503L163,501L156,505L149,515L152,519L149,524L133,538L107,545L120,537L126,538L136,528L139,518L122,519L121,508L116,510L112,504L114,501L111,495L118,487L128,486L128,480L130,478L114,477L113,473L115,472ZM89,552L94,549ZM88,553ZM86,551ZM92,527ZM86,550ZM85,551ZM84,551ZM84,552ZM90,523ZM81,552ZM80,552ZM79,552ZM97,480L105,484ZM73,552ZM87,499L90,501ZM88,497ZM67,552L72,553ZM62,551L68,550ZM61,551ZM62,549ZM60,550ZM60,550ZM59,549ZM58,551ZM55,551L58,551ZM54,548ZM52,549L55,549ZM51,547L53,549ZM48,548ZM47,548ZM48,547ZM46,549ZM46,550ZM42,543ZM38,544L40,547ZM38,542ZM37,542ZM37,541ZM33,540L35,540ZM29,535ZM24,529ZM24,529ZM23,529ZM20,530ZM19,525L22,527ZM235,529ZM235,531ZM234,531ZM234,530ZM232,528ZM228,522ZM228,523ZM227,522ZM229,532ZM226,524ZM226,523ZM227,530ZM227,534ZM225,529ZM225,529ZM225,530L227,529ZM224,527L226,524L233,532L228,531L230,534ZM221,518ZM224,527ZM222,528ZM220,522L227,521L223,527ZM215,512L221,518L219,521ZM215,512ZM213,509ZM215,520L217,519L221,526ZM213,513ZM214,521ZM211,512ZM211,514ZM211,517L213,514L217,518ZM177,507ZM176,507ZM171,504ZM171,506ZM171,508ZM170,512L173,508ZM169,509L170,506ZM169,505Z",
+  AL: "M616,459L620,458ZM610,367L651,363L668,414L665,423L669,439L627,443L630,456L621,458L625,457L620,450L619,457L614,456Z",
+  AR: "M510,343L578,340L580,344L575,350L587,351L567,389L566,408L520,410L520,399L513,398Z",
+  AZ: "M190,386L195,385L192,375L198,364L205,359L200,346L202,322L211,325L216,307L291,319L276,428L244,423L188,390Z",
+  CA: "M133,359L136,363ZM131,367L134,372ZM126,357ZM123,345ZM117,359L119,360ZM115,342L121,345ZM110,342L114,345ZM107,341ZM95,177L152,194L138,250L200,343L205,359L193,373L193,386L152,382L149,365L137,354L136,348L107,331L110,320L97,293L101,281L94,274L96,263L101,271L98,260L100,257L98,257L96,262L90,256L92,252L85,236L88,219L83,205L91,196Z",
+  CO: "M302,243L402,253L397,330L291,319Z",
+  CT: "M805,198L828,192L831,204L831,206L823,209L816,211L816,210L814,213L807,218L806,216L808,213L807,212Z",
+  DE: "M786,250ZM782,249L784,247L787,246L785,250L786,253L790,257L793,262L796,264L798,271L789,273Z",
+  FL: "M757,545ZM755,546ZM751,549L754,547ZM739,553L745,548L749,550ZM736,554ZM733,554ZM725,514L730,518ZM719,555ZM677,461ZM669,439L672,444L715,441L717,445L719,435L728,436L763,506L762,536L765,532L760,543L761,538L750,541L745,531L738,529L727,514L728,509L725,514L715,500L720,492L715,490L715,498L712,494L712,474L694,457L683,454L682,458L670,463L677,462L672,465L666,465L664,459L649,453L629,457L630,449L626,446Z",
+  GA: "M651,363L689,358L687,365L694,368L720,393L729,409L733,410L729,416L728,436L719,435L717,445L715,441L671,443L665,423L668,414Z",
+  HI: "M326,536L330,527L341,532L349,541L333,552L329,550ZM314,514L316,512L327,518L320,521ZM314,521L317,521ZM308,514L312,516L309,518ZM303,511L304,508L314,509ZM286,501L291,499L297,507L289,507ZM259,493L263,489L268,491L265,496ZM251,496L254,493Z",
+  IA: "M483,207L555,205L558,220L571,231L572,237L560,246L561,255L555,266L551,262L492,263L487,237L480,222Z",
+  ID: "M212,129L223,72L235,75L231,94L234,100L233,105L243,121L248,123L241,143L251,144L253,159L260,170L279,170L280,166L284,172L277,219L193,203L204,163L201,158L216,137Z",
+  IL: "M555,266L561,255L560,246L572,237L571,231L564,224L604,222L609,236L615,294L608,304L608,318L602,321L603,327L595,325L593,330L589,329L586,316L573,307L576,294L569,294L557,278Z",
+  IN: "M609,236L648,231L654,288L645,291L638,307L632,303L629,310L608,312L615,294Z",
+  KS: "M401,272L505,277L502,284L510,291L510,333L397,330Z",
+  KY: "M593,330L595,325L603,327L602,321L608,319L610,310L629,310L633,302L639,306L645,291L654,288L654,282L672,290L683,286L691,301L700,307L676,329L610,334L610,338L589,339ZM588,339Z",
+  LA: "M607,463L608,468ZM599,463L602,461ZM595,474ZM583,483ZM580,483ZM577,484ZM555,475L560,475ZM520,410L567,409L568,419L572,421L562,435L560,447L591,446L590,452L596,461L591,465L601,465L594,473L606,479L604,483L600,485L601,480L592,478L586,483L582,478L575,484L558,470L550,476L525,474L530,448L521,430Z",
+  MA: "M852,200L856,198L857,200ZM845,201L847,198L849,199L850,200L846,202ZM805,184L832,178L834,174L837,173L838,176L841,176L838,179L839,180L837,182L837,185L839,184L842,185L843,187L843,189L845,189L846,192L848,192L851,192L854,190L851,186L849,186L851,185L854,188L855,192L855,195L854,192L850,194L843,201L846,197L846,194L844,194L842,199L840,200L839,197L836,195L834,191L805,198Z",
+  MD: "M787,283ZM784,280ZM777,269ZM729,259L782,249L789,273L798,271L797,279L789,283L787,275L781,277L780,271L784,272L779,270L780,267L777,265L780,253L773,260L781,282L767,279L770,268L761,266L754,257L740,259L731,269Z",
+  ME: "M863,139ZM861,140ZM860,137ZM856,140ZM857,147ZM856,143L858,143ZM855,140L855,137ZM838,169L832,164L821,129L827,126L828,99L834,82L840,86L848,81L854,84L862,110L867,109L868,116L877,122L865,138L860,135L861,143L856,135L853,137L855,146L842,156Z",
+  MI: "M640,153L645,154ZM631,155ZM629,155ZM628,159L629,156ZM627,157ZM625,163ZM623,169ZM622,171ZM614,160ZM619,234L626,221L619,190L623,173L630,166L631,175L632,165L638,162L636,155L659,162L662,179L655,192L659,194L662,188L671,185L678,204L678,211L674,211L667,230ZM576,120L587,113ZM563,146L596,126L588,141L592,136L591,139L597,137L603,144L611,145L634,136L634,141L646,139L645,146L656,148L640,149L639,153L628,150L619,154L615,160L615,155L610,160L609,156L603,171L594,156Z",
+  MN: "M473,102L500,102L500,95L502,95L506,107L517,111L528,108L546,119L555,114L573,118L557,126L538,145L538,157L531,164L534,169L533,183L552,196L555,205L483,207L483,172L477,167L481,158Z",
+  MO: "M492,263L551,262L555,266L557,278L567,288L568,293L576,294L573,307L586,316L589,329L594,330L593,336L587,338L585,349L575,350L580,344L578,340L510,343L510,291L502,284L505,277L497,274Z",
+  MS: "M613,459ZM608,459L612,459ZM605,460ZM602,460ZM566,408L565,395L568,395L567,389L574,380L575,371L610,367L614,457L599,457L595,461L590,452L591,446L560,447L562,435L572,421L568,419Z",
+  MT: "M235,75L386,98L380,174L286,162L284,172L280,166L279,170L260,170L253,159L251,144L241,143L248,123L243,121L233,105L234,100L231,94Z",
+  NC: "M799,320L801,322ZM798,338L804,332L803,323L805,333ZM707,325L794,309L802,323L792,310L797,318L790,315L793,317L786,322L783,317L785,323L794,320L795,327L797,320L800,326L795,333L790,334L789,330L788,334L781,333L790,336L784,342L794,340L789,347L798,338L792,349L784,349L777,355L773,367L764,369L743,354L726,356L721,351L671,361L676,350L703,334Z",
+  ND: "M386,98L473,102L481,160L381,156Z",
+  NE: "M377,212L472,220L483,227L491,252L491,261L499,275L401,272L402,253L373,251Z",
+  NH: "M817,135L818,132L817,131L821,129L832,164L838,169L837,173L834,174L832,178L816,181L814,179L814,176L813,165L815,154L814,150L819,145L817,141L818,137Z",
+  NJ: "M786,250L787,246L796,237L790,233L789,231L787,231L787,230L788,225L786,223L789,216L791,215L804,219L803,225L801,227L801,229L805,229L806,243L800,260L797,261L798,257L793,257L787,253Z",
+  NM: "M291,319L383,329L375,425L317,420L318,424L291,421L290,430L276,428Z",
+  NV: "M152,194L235,212L214,322L211,325L202,322L200,343L138,250Z",
+  NY: "M828,207ZM828,211ZM826,209ZM803,226L801,229ZM758,172ZM756,172ZM717,211L728,199L723,191L754,184L761,177L757,166L768,151L793,142L805,184L808,213L806,221L832,210L805,227L804,219L786,213L779,205L718,217Z",
+  OH: "M677,231ZM676,230ZM648,233L667,230L681,234L707,219L711,244L710,263L699,273L698,280L695,279L689,292L683,286L672,290L659,282L653,282Z",
+  OK: "M383,329L510,333L513,398L501,392L483,397L474,392L471,396L470,393L458,393L456,388L431,382L426,379L428,341L382,339Z",
+  OR: "M128,101L135,107L134,115L140,119L185,122L212,129L216,137L201,158L204,163L193,203L94,176L95,160L107,142L122,100Z",
+  PA: "M707,219L717,211L718,217L779,205L791,215L787,229L796,237L782,249L714,262Z",
+  RI: "M838,197L839,197L840,200L839,201L838,198L838,200L837,201ZM836,197L837,198ZM836,201L836,199ZM835,208L835,206ZM831,206L831,204L828,193L834,191L837,197L837,198L835,195L835,203Z",
+  SC: "M689,358L700,352L721,351L726,356L743,354L764,369L754,387L738,400L732,410L720,393L694,368L687,365Z",
+  SD: "M380,174L381,156L481,160L477,167L483,172L481,208L483,214L480,221L483,227L472,220L461,221L454,216L377,212Z",
+  TN: "M585,349L588,339L610,338L610,334L707,324L703,334L676,350L671,361L578,369Z",
+  TX: "M382,339L428,341L426,379L439,386L456,388L458,393L470,393L471,396L474,392L483,397L501,392L520,399L521,430L530,448L525,474L510,480L514,477L507,474L507,481L503,485L510,481L472,508L465,523L469,543L466,519L470,508L482,499L469,504L469,510L463,509L467,512L461,520L464,520L464,533L469,546L464,547L436,536L429,514L399,470L378,469L373,479L367,483L347,469L342,450L317,423L375,425Z",
+  UT: "M235,212L277,219L274,238L302,243L291,319L216,307Z",
+  VA: "M787,285ZM791,282L797,279L790,299ZM787,283ZM700,307L705,313L725,304L731,281L736,284L747,267L747,261L755,266L759,262L768,269L766,279L783,285L783,291L773,285L784,291L785,296L782,298L786,302L775,300L784,305L791,303L794,309L677,329Z",
+  VT: "M793,142L817,135L818,137L817,141L819,145L814,150L815,154L813,165L814,176L814,179L816,181L805,184L804,183L801,169L800,167L798,168L799,165L796,160L796,152L794,149Z",
+  WA: "M146,85L148,82ZM151,63ZM151,59ZM150,62ZM148,68L151,66L149,68L151,75ZM148,57L150,59ZM147,58ZM148,53ZM145,60L151,60L148,64ZM145,58ZM223,72L212,129L136,117L133,104L121,99L123,92L123,98L126,92L124,87L127,88L123,87L123,62L126,58L145,72L148,70L148,75L138,83L149,75L146,86L142,85L143,89L149,86L149,80L153,75L150,64L154,63L152,54Z",
+  WI: "M611,166ZM605,169ZM562,138ZM561,140ZM559,139ZM558,141ZM558,139ZM558,138L561,138ZM558,142L560,141ZM555,138ZM542,144L557,139L556,146L594,156L603,171L598,183L611,167L603,195L604,222L564,224L558,220L554,199L532,182L534,169L531,164L538,157L538,145Z",
+  WV: "M688,291L692,290L695,279L698,280L699,273L709,265L711,244L714,262L729,259L731,269L748,256L756,262L755,266L747,261L747,267L736,284L731,281L725,304L712,311L702,312L688,297Z",
+  WY: "M380,174L373,251L274,238L286,162Z"
+};
+
+const SD={AL:{n:"Alabama",p:"R",a:73.5,b:62271,c:14.8,d:4.8,e:9.6,f:453,g:2.7,h:27.5,i:11.6},AK:{n:"Alaska",p:"R",a:76.6,b:86370,c:10.2,d:5.9,e:7.1,f:838,g:4.0,h:30.5,i:13.7},AZ:{n:"Arizona",p:"R",a:76.3,b:77115,c:13.1,d:3.7,e:7.5,f:426,g:4.3,h:31.5,i:11.2},AR:{n:"Arkansas",p:"R",a:73.8,b:62106,c:15.3,d:3.1,e:8.7,f:579,g:4.4,h:24.3,i:12.4},CA:{n:"California",p:"D",a:79.0,b:95521,c:10.6,d:4.6,e:5.2,f:430,g:5.4,h:35.9,i:11.5},CO:{n:"Colorado",p:"D",a:78.5,b:97113,c:9.1,d:3.8,e:4.8,f:440,g:3.8,h:44.4,i:11.0},CT:{n:"Connecticut",p:"D",a:79.2,b:93228,c:9.1,d:9.4,e:3.2,f:189,g:4.2,h:41.4,i:9.7},DE:{n:"Delaware",p:"D",a:76.6,b:79325,c:11.3,d:6.0,e:6.5,f:421,g:5.4,h:34.0,i:10.8},FL:{n:"Florida",p:"R",a:77.6,b:73971,c:11.4,d:2.0,e:5.3,f:366,g:4.5,h:33.3,i:10.4},GA:{n:"Georgia",p:"R",a:75.5,b:74580,c:12.2,d:3.5,e:7.6,f:390,g:3.7,h:33.7,i:11.8},HI:{n:"Hawaii",p:"D",a:80.0,b:94814,c:8.6,d:10.1,e:1.9,f:304,g:2.2,h:34.8,i:10.9},ID:{n:"Idaho",p:"R",a:77.4,b:74942,c:10.0,d:2.3,e:2.0,f:223,g:3.2,h:30.6,i:12.8},IL:{n:"Illinois",p:"D",a:77.0,b:82304,c:10.8,d:7.0,e:6.4,f:370,g:4.6,h:36.7,i:11.0},IN:{n:"Indiana",p:"R",a:75.4,b:69973,c:11.2,d:3.0,e:6.3,f:377,g:3.4,h:28.6,i:11.7},IA:{n:"Iowa",p:"R",a:77.6,b:74867,c:10.4,d:2.5,e:3.1,f:295,g:3.0,h:30.7,i:12.0},KS:{n:"Kansas",p:"R",a:76.8,b:73948,c:10.3,d:2.6,e:5.0,f:403,g:3.3,h:35.0,i:12.1},KY:{n:"Kentucky",p:"R",a:73.6,b:64526,c:15.9,d:5.0,e:7.0,f:303,g:4.5,h:25.1,i:11.5},LA:{n:"Louisiana",p:"R",a:73.1,b:60986,c:18.7,d:5.3,e:10.8,f:549,g:3.7,h:25.0,i:12.8},ME:{n:"Maine",p:"D",a:77.5,b:73072,c:10.9,d:3.6,e:1.6,f:118,g:3.7,h:34.0,i:9.2},MD:{n:"Maryland",p:"D",a:77.0,b:98461,c:8.1,d:5.8,e:7.4,f:396,g:4.3,h:42.0,i:10.7},MA:{n:"Massachusetts",p:"D",a:79.8,b:105234,c:9.9,d:7.2,e:2.1,f:307,g:4.7,h:45.8,i:9.9},MI:{n:"Michigan",p:"D",a:76.4,b:72600,c:13.1,d:3.8,e:6.6,f:410,g:4.3,h:30.7,i:10.6},MN:{n:"Minnesota",p:"D",a:78.8,b:88750,c:8.3,d:3.4,e:2.9,f:273,g:4.4,h:38.5,i:11.6},MS:{n:"Mississippi",p:"R",a:72.6,b:59127,c:19.3,d:4.5,e:11.2,f:291,g:3.5,h:23.2,i:11.8},MO:{n:"Missouri",p:"R",a:75.0,b:68992,c:12.1,d:3.3,e:8.5,f:489,g:3.6,h:31.2,i:11.5},MT:{n:"Montana",p:"R",a:76.8,b:72980,c:11.5,d:3.1,e:3.9,f:411,g:3.6,h:33.4,i:10.8},NE:{n:"Nebraska",p:"R",a:78.0,b:78049,c:9.2,d:0.5,e:3.5,f:310,g:3.0,h:34.0,i:12.9},NV:{n:"Nevada",p:"D",a:76.0,b:75228,c:11.2,d:3.6,e:6.6,f:478,g:4.8,h:26.0,i:11.5},NH:{n:"New Hampshire",p:"D",a:78.5,b:92767,c:7.2,d:5.0,e:1.0,f:149,g:3.0,h:39.0,i:8.8},NJ:{n:"New Jersey",p:"D",a:79.0,b:97126,c:9.4,d:7.8,e:3.0,f:195,g:4.5,h:42.0,i:10.1},NM:{n:"New Mexico",p:"D",a:75.1,b:62792,c:17.5,d:3.4,e:10.5,f:780,g:4.0,h:28.1,i:11.1},NY:{n:"New York",p:"D",a:79.0,b:81386,c:12.5,d:8.5,e:3.4,f:363,g:4.6,h:39.1,i:10.5},NC:{n:"North Carolina",p:"R",a:76.1,b:71385,c:12.9,d:2.4,e:7.0,f:378,g:3.9,h:33.4,i:11.2},ND:{n:"North Dakota",p:"R",a:77.2,b:76827,c:10.7,d:1.8,e:3.8,f:311,g:2.8,h:31.2,i:14.0},OH:{n:"Ohio",p:"R",a:75.3,b:68027,c:13.0,d:3.5,e:6.2,f:324,g:4.3,h:29.6,i:10.9},OK:{n:"Oklahoma",p:"R",a:73.8,b:65364,c:14.5,d:3.0,e:7.8,f:432,g:3.6,h:27.2,i:12.7},OR:{n:"Oregon",p:"D",a:78.2,b:79315,c:11.2,d:4.2,e:3.8,f:327,g:4.1,h:35.5,i:9.9},PA:{n:"Pennsylvania",p:"R",a:76.8,b:76608,c:11.0,d:3.7,e:5.6,f:289,g:4.1,h:34.2,i:10.3},RI:{n:"Rhode Island",p:"D",a:78.1,b:81368,c:9.8,d:7.5,e:1.8,f:183,g:4.4,h:35.4,i:9.3},SC:{n:"South Carolina",p:"R",a:74.8,b:67206,c:13.5,d:3.6,e:8.2,f:497,g:3.6,h:30.0,i:11.0},SD:{n:"South Dakota",p:"R",a:76.7,b:72470,c:11.9,d:2.4,e:3.5,f:399,g:2.2,h:30.8,i:13.5},TN:{n:"Tennessee",p:"R",a:74.2,b:68437,c:13.5,d:2.0,e:8.4,f:596,g:3.4,h:29.5,i:11.3},TX:{n:"Texas",p:"R",a:76.5,b:75825,c:13.4,d:2.3,e:6.1,f:405,g:4.0,h:32.2,i:12.7},UT:{n:"Utah",p:"R",a:78.6,b:89818,c:8.3,d:3.1,e:2.6,f:323,g:3.4,h:36.4,i:14.9},VT:{n:"Vermont",p:"D",a:78.2,b:77364,c:10.1,d:5.4,e:1.5,f:173,g:2.8,h:40.4,i:8.7},VA:{n:"Virginia",p:"D",a:78.0,b:90106,c:9.6,d:3.7,e:5.0,f:210,g:3.1,h:40.5,i:10.7},WA:{n:"Washington",p:"D",a:79.2,b:95820,c:9.8,d:4.6,e:3.6,f:376,g:4.7,h:38.0,i:10.7},WV:{n:"West Virginia",p:"R",a:72.2,b:60798,c:17.0,d:4.5,e:5.4,f:315,g:4.5,h:22.0,i:9.8},WI:{n:"Wisconsin",p:"R",a:77.2,b:76013,c:10.6,d:3.2,e:4.4,f:324,g:3.2,h:31.8,i:10.8},WY:{n:"Wyoming",p:"R",a:76.3,b:76882,c:9.6,d:2.0,e:2.8,f:275,g:3.3,h:28.4,i:11.8}};
+
+const M=[
+  {k:"a",l:"Life Expectancy",u:"yrs",ds:"Average life expectancy at birth (CDC, 2022 life tables)",hb:true},
+  {k:"b",l:"Median Income",u:"$",ds:"Median household income (Census ACS, 2024)",hb:true,fmt:"$"},
+  {k:"c",l:"Poverty Rate",u:"%",ds:"% below poverty line (Census ACS, 2024)",hb:false},
+  {k:"d",l:"Debt / GDP",u:"%",ds:"Net tax-supported debt as % of state GDP (Moody's, FY 2022)",hb:false},
+  {k:"e",l:"Murder Rate",u:"/100k",ds:"Homicides per 100k residents (FBI/CDC, 2023–24)",hb:false},
+  {k:"f",l:"Violent Crime",u:"/100k",ds:"Violent crimes per 100k residents (FBI UCR, 2024)",hb:false},
+  {k:"g",l:"Unemployment",u:"%",ds:"Seasonally adjusted rate (BLS, Dec 2025)",hb:false},
+  {k:"h",l:"Education (BA+)",u:"%",ds:"% adults 25+ with bachelor's+ (Census ACS, 2023)",hb:true},
+  {k:"i",l:"Birth Rate",u:"/1k",ds:"Births per 1,000 pop (CDC NCHS, 2023–24)",hb:null}
+];
+
+const sources=[["Life Expectancy","CDC NCHS, 2022 Life Tables (Dec 2025)"],["Median Income","U.S. Census Bureau, 2024 ACS 1-Year"],["Poverty Rate","U.S. Census Bureau, 2024 ACS 1-Year"],["State Debt/GDP","Moody's State Debt Medians, FY 2022"],["Murder Rate","FBI UCR / CDC NCHS, 2023–2024"],["Violent Crime","FBI Crime in the U.S. Report, 2024"],["Unemployment","BLS LAUS, Dec 2025 (seasonally adj.)"],["Education (BA+)","Census ACS, 2023 1-Year"],["Birth Rate","CDC NCHS Vital Statistics, 2023–24"],["Classification","2024 U.S. Presidential Election"]];
+
+// ===================== STATE =====================
+let curMetric = "a";
+let curView = "map";
+let rankFlipped = false;
+const all = Object.entries(SD);
+const reds = all.filter(([,d])=>d.p==="R");
+const blues = all.filter(([,d])=>d.p==="D");
+
+function avg(arr,k){return arr.reduce((s,[,d])=>s+d[k],0)/arr.length}
+function fv(v,m){return m.fmt==="$"?"$"+v.toLocaleString():String(v)}
+
+// ===================== INIT =====================
+document.getElementById("subtitle").textContent = `${reds.length} Republican vs ${blues.length} Democratic states · 9 quality-of-life metrics`;
+
+// Sources
+const sg=document.getElementById("sourcesGrid");
+sources.forEach(([m,s])=>{const d=document.createElement("div");d.innerHTML=`<strong>${m}</strong><br><span>${s}</span>`;sg.appendChild(d);});
+document.getElementById("srcToggle").onclick=function(){const p=document.getElementById("sourcesPanel");p.classList.toggle("show");this.textContent=p.classList.contains("show")?"✕ CLOSE":"📋 SOURCES";};
+
+// Nav
+document.querySelectorAll(".nav-btn").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    curView=btn.dataset.view;
+    document.getElementById("mapView").classList.toggle("hidden",curView!=="map");
+    document.getElementById("compareView").classList.toggle("hidden",curView!=="compare");
+    document.getElementById("rankingView").classList.toggle("hidden",curView!=="ranking");
+    render();
+  };
+});
+
+// Pills
+const pc=document.getElementById("pillsContainer");
+M.forEach(m=>{const b=document.createElement("button");b.className="pill"+(m.k===curMetric?" active":"");b.textContent=m.l;b.onclick=()=>{curMetric=m.k;document.querySelectorAll(".pill").forEach(p=>p.classList.remove("active"));b.classList.add("active");render();};pc.appendChild(b);});
+
+// ===================== MAP =====================
+function buildMap(){
+  const mv=document.getElementById("mapView");
+  mv.innerHTML=`<svg viewBox="0 40 960 570" class="map-svg" id="mapSvg"></svg>`;
+  const svg=document.getElementById("mapSvg");
+  Object.entries(GEO).forEach(([abbr,path])=>{
+    const d=SD[abbr];if(!d)return;
+    const el=document.createElementNS("http://www.w3.org/2000/svg","path");
+    el.setAttribute("d",path);
+    el.setAttribute("fill",d.p==="R"?"#f85149":"#58a6ff");
+    el.setAttribute("stroke","#0d1117");
+    el.setAttribute("stroke-width","1");
+    el.setAttribute("opacity","0.8");
+    el.setAttribute("data-st",abbr);
+    el.onmouseenter=()=>{el.setAttribute("fill","#e6edf3");el.setAttribute("opacity","1");el.setAttribute("stroke-width","2.5");showTooltip(abbr);};
+    el.onmouseleave=()=>{el.setAttribute("fill",d.p==="R"?"#f85149":"#58a6ff");el.setAttribute("opacity","0.8");el.setAttribute("stroke-width","1");hideTooltip();};
+    svg.appendChild(el);
+  });
+  // Legend
+  const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+  g.innerHTML=`<rect x="20" y="575" width="12" height="12" rx="2" fill="#f85149" opacity="0.8"/><text x="37" y="585" fill="#8b949e" font-size="10" font-family="DM Sans">Republican (${reds.length})</text><rect x="180" y="575" width="12" height="12" rx="2" fill="#58a6ff" opacity="0.8"/><text x="197" y="585" fill="#8b949e" font-size="10" font-family="DM Sans">Democrat (${blues.length})</text><text x="360" y="585" fill="#484f58" font-size="9" font-family="DM Sans">Hover any state for details</text>`;
+  svg.appendChild(g);
+
+  svg.onmousemove=(ev)=>{
+    const r=svg.getBoundingClientRect();
+    const tt=document.getElementById("tooltip");
+    tt.style.left=Math.min(ev.clientX-r.left+14,r.width-260)+"px";
+    tt.style.top=Math.max(ev.clientY-r.top-120,8)+"px";
+  };
+}
+
+function showTooltip(abbr){
+  const d=SD[abbr];if(!d)return;
+  const tt=document.getElementById("tooltip");
+  tt.style.borderColor=d.p==="R"?"#f85149":"#58a6ff";
+  document.getElementById("ttName").innerHTML=`${d.n} <span class="tt-badge" style="background:${d.p==="R"?"rgba(248,81,73,0.2)":"rgba(88,166,255,0.2)"};color:${d.p==="R"?"#f85149":"#58a6ff"}">${d.p}</span>`;
+  let rows="";
+  M.forEach(m=>{
+    const active=m.k===curMetric;
+    const val=fv(d[m.k],m)+(m.u==="%"?"%":m.u!=="$"?" "+m.u:"");
+    rows+=`<div class="tt-row${active?" active":""}" style="color:${active?"#e6edf3":"#8b949e"}"><span>${m.l}</span><span>${val}</span></div>`;
+  });
+  document.getElementById("ttRows").innerHTML=rows;
+  tt.classList.add("show");
+}
+function hideTooltip(){document.getElementById("tooltip").classList.remove("show");}
+
+// ===================== RENDER =====================
+function render(){
+  const cm=M.find(m=>m.k===curMetric);
+  document.getElementById("metricTitle").textContent=cm.l;
+  document.getElementById("metricDesc").textContent=cm.ds;
+  const ra=avg(reds,curMetric),ba=avg(blues,curMetric);
+  document.getElementById("redAvg").textContent=cm.fmt==="$"?`$${Math.round(ra).toLocaleString()}`:ra.toFixed(1);
+  document.getElementById("blueAvg").textContent=cm.fmt==="$"?`$${Math.round(ba).toLocaleString()}`:ba.toFixed(1);
+
+  // Compare
+  if(curView==="compare"){
+    const cv=document.getElementById("compareView");
+    let html='<div class="compare-grid">';
+    M.forEach(m=>{
+      const rv=avg(reds,m.k),bv=avg(blues,m.k),mx=Math.max(rv,bv);
+      const w=m.hb===null?null:m.hb?(rv>bv?"R":"D"):(rv<bv?"R":"D");
+      const act=m.k===curMetric;
+      html+=`<div class="compare-card${act?" active":""}" onclick="curMetric='${m.k}';document.querySelectorAll('.pill').forEach((p,i)=>p.classList.toggle('active',i===${M.indexOf(m)}));render();">
+        <div class="compare-head"><span>${m.l}</span>${w?`<span class="winner-badge" style="background:${w==="R"?"rgba(248,81,73,0.15)":"rgba(88,166,255,0.15)"};color:${w==="R"?"#f85149":"#58a6ff"}">${w==="R"?"RED":"BLUE"} ✓</span>`:""}</div>`;
+      [{l:"Red States",v:rv,c:"#f85149",g:"#da3633"},{l:"Blue States",v:bv,c:"#58a6ff",g:"#1f6feb"}].forEach((s,i)=>{
+        html+=`<div style="margin-bottom:${i===0?6:0}px"><div class="bar-label"><span style="color:${s.c}">${s.l}</span><span style="color:${s.c}">${m.fmt==="$"?"$"+Math.round(s.v).toLocaleString():s.v.toFixed(1)}${m.u==="%"?"%":""}</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(s.v/mx)*100}%;background:linear-gradient(90deg,${s.c},${s.g})"></div></div></div>`;
+      });
+      html+="</div>";
+    });
+    html+="</div>";
+    cv.innerHTML=html;
+  }
+
+  // Ranking
+  if(curView==="ranking"){
+    const rv=document.getElementById("rankingView");
+    const cm2=M.find(m=>m.k===curMetric);
+    const vals=all.map(([,d])=>d[curMetric]),mn=Math.min(...vals),mx=Math.max(...vals);
+    // Default: best outcome at top. For higherIsBetter metrics, highest first. For lowerIsBetter, lowest first.
+    // Birth rate (hb===null) defaults to highest first.
+    let baseDir = cm2.hb===false ? -1 : 1; // 1 = descending (high first), -1 = ascending (low first)
+    if(rankFlipped) baseDir = -baseDir;
+    const sorted=[...all].sort((a,b)=>(b[1][curMetric]-a[1][curMetric])*baseDir);
+    const bestLabel = rankFlipped ? "Worst → Best" : "Best → Worst";
+    const arrowIcon = rankFlipped ? "↑" : "↓";
+    let html=`<div class="ranking-controls"><span class="ranking-label">Showing: ${bestLabel}</span><button class="sort-toggle" onclick="rankFlipped=!rankFlipped;render();">${arrowIcon} Flip Order</button></div>`;
+    html+=`<div class="ranking-header"><span>#</span><span>State</span><span style="text-align:right">${cm2.l}</span><span></span></div><div class="ranking-scroll">`;
+    sorted.forEach(([abbr,d],i)=>{
+      const bw=((d[curMetric]-mn)/(mx-mn))*100;
+      html+=`<div class="ranking-row"><span class="rank-num">${i+1}</span>
+        <span class="rank-name"><span class="rank-dot" style="background:${d.p==="R"?"#f85149":"#58a6ff"}"></span><span style="font-weight:500">${d.n}</span></span>
+        <span class="rank-val">${fv(d[curMetric],cm2)}${cm2.u==="%"?"%":""}</span>
+        <div style="padding-left:12px"><div class="bar-track" style="height:5px"><div class="bar-fill" style="width:${bw}%;height:100%;background:${d.p==="R"?"linear-gradient(90deg,#f85149,#da3633)":"linear-gradient(90deg,#58a6ff,#1f6feb)"}"></div></div></div></div>`;
+    });
+    html+="</div>";
+    rv.innerHTML=html;
+  }
+
+  // Scorecard
+  const sc=document.getElementById("scorecardChips");
+  sc.innerHTML="";
+  M.filter(m=>m.hb!==null).forEach(m=>{
+    const rv=avg(reds,m.k),bv=avg(blues,m.k);
+    const w=m.hb?(rv>bv?"R":"D"):(rv<bv?"R":"D");
+    const chip=document.createElement("div");
+    chip.className="scorecard-chip";
+    chip.style.border=`1px solid ${w==="R"?"rgba(248,81,73,0.3)":"rgba(88,166,255,0.3)"}`;
+    chip.style.background=w==="R"?"rgba(248,81,73,0.06)":"rgba(88,166,255,0.06)";
+    chip.innerHTML=`<span style="width:6px;height:6px;border-radius:50%;background:${w==="R"?"#f85149":"#58a6ff"}"></span><span style="color:#c9d1d9">${m.l}</span>`;
+    sc.appendChild(chip);
+  });
+}
+
+buildMap();
+render();
+</script>
+</body>
+</html>
